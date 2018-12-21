@@ -21,7 +21,7 @@ class MainViewController: UIViewController {
     var hud: MBProgressHUD?
     var score: Int = 0
     var timer: Timer?
-    var seconds: Int = 60
+    var seconds: Int = 2
     
     var resultsView = UIView()
     
@@ -204,7 +204,7 @@ class MainViewController: UIViewController {
         score = 0
         inputField.isHidden = false
         
-        //add logic for saving best score to NSUserDefaults here
+        //TODO: add logic for saving best score to NSUserDefaults here
         
         removeResultsView()
         setRandomNumberLabel()
@@ -217,8 +217,15 @@ class MainViewController: UIViewController {
     }
     
     @objc func endGame() {
-        //add logic for saving best score to NSUserDefaults here
+        //of course you'd never force close an app like this, you'd let the user do it. But I anted to see how it was done and this is what StackOverflow suggested
         
+        //TODO: add logic for saving best score to NSUserDefaults here
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75, execute: {
+                exit(0)
+            })
+        }
     }
     
     func removeResultsView() {

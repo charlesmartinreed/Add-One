@@ -23,10 +23,10 @@ class MainViewController: UIViewController {
     var timer: Timer?
     var seconds: Int = 60
     
+    var resultsView = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         //MARK:- Timer setup
         
         //MARK:- MBProgressHUD setup
@@ -36,14 +36,9 @@ class MainViewController: UIViewController {
             self.view.addSubview(hud!)
         }
         
-        setRandomNumberLabel()
-        updateScoreLabel()
-        
-        print("Loaded view")
-        
-        //respond to user input
-        inputField?.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
-        }
+        startNewRound()
+
+    }
     
     
     //MARK:- Game logic
@@ -78,9 +73,7 @@ class MainViewController: UIViewController {
         updateScoreLabel()
         
         //NOTE: creates timer only when first answer is given
-        if timer == nil {
-            timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(handleGameTimer), userInfo: nil, repeats: true)
-        }
+        startNewTimer()
     }
     
     //MARK:- MBProgressHUD helper method
@@ -106,6 +99,12 @@ class MainViewController: UIViewController {
         }
     }
     
+    func startNewTimer() {
+        if timer == nil {
+            timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(handleGameTimer), userInfo: nil, repeats: true)
+        }
+    }
+    
     //MARK:- Timer handling
     @objc func handleGameTimer() -> Void {
         if seconds > 0 && seconds <= 60 {
@@ -115,8 +114,115 @@ class MainViewController: UIViewController {
             if timer != nil {
                 timer?.invalidate()
                 timer = nil
+                seconds = 60
+                
+                //when the timer is 0, show the user the results and offer option to start new round
+                showResults()
             }
         }
+        
+        
+    }
+    
+    //MARK:- End of round game logic
+    func showResults() {
+        
+        inputField.isHidden = true
+        resultsView = UIView()
+        resultsView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let scoreLabel = UILabel()
+        scoreLabel.text = "You earned \(score) points! Play again?"
+        scoreLabel.font = UIFont.boldSystemFont(ofSize: 24)
+        scoreLabel.textColor = .white
+        scoreLabel.textAlignment = .center
+        scoreLabel.numberOfLines = 0
+        scoreLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let continueButton = UIButton()
+        continueButton.backgroundColor = .blue
+        continueButton.layer.cornerRadius = 12
+        continueButton.setTitle("Continue", for: .normal)
+        continueButton.setTitleColor(.white, for: .normal)
+        continueButton.titleLabel?.font = UIFont(name: "HVD_Comic_Serif_Pro", size: 18)
+        continueButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        let quitButton = UIButton()
+        quitButton.backgroundColor = .blue
+        quitButton.layer.cornerRadius = 12
+        quitButton.setTitle("Quit", for: .normal)
+        quitButton.setTitleColor(.white, for: .normal)
+        quitButton.titleLabel?.font = UIFont(name: "HVD_Comic_Serif_Pro", size: 18)
+        quitButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        //add targets for buttons
+        continueButton.addTarget(self, action: #selector(startNewRound), for: .touchUpInside)
+        quitButton.addTarget(self, action: #selector(endGame), for: .touchUpInside)
+        
+        view.addSubview(resultsView)
+        resultsView.addSubview(scoreLabel)
+        resultsView.addSubview(continueButton)
+        resultsView.addSubview(quitButton)
+        
+        let resultsViewConstraints = [
+            resultsView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            resultsView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            resultsView.heightAnchor.constraint(equalToConstant: 200),
+            resultsView.widthAnchor.constraint(equalToConstant: 400)
+        ]
+        
+        let scoreLabelConstraints = [
+            scoreLabel.leadingAnchor.constraint(equalTo: resultsView.leadingAnchor, constant: 8),
+            scoreLabel.trailingAnchor.constraint(equalTo: resultsView.trailingAnchor, constant: -8),
+            scoreLabel.centerXAnchor.constraint(equalTo: resultsView.centerXAnchor)
+        ]
+        
+        let continueButtonConstraints = [
+            continueButton.bottomAnchor.constraint(equalTo: quitButton.topAnchor, constant: -8),
+            continueButton.leadingAnchor.constraint(equalTo: resultsView.leadingAnchor),
+            continueButton.trailingAnchor.constraint(equalTo: resultsView.trailingAnchor),
+            continueButton.heightAnchor.constraint(equalToConstant: 50),
+            continueButton.widthAnchor.constraint(equalToConstant: 100)
+        ]
+        
+        let quitButtonConstraints = [
+            quitButton.leadingAnchor.constraint(equalTo: resultsView.leadingAnchor),
+            quitButton.trailingAnchor.constraint(equalTo: resultsView.trailingAnchor),
+            quitButton.bottomAnchor.constraint(equalTo: resultsView.bottomAnchor),
+            quitButton.heightAnchor.constraint(equalToConstant: 50),
+            quitButton.widthAnchor.constraint(equalToConstant: 100)
+        ]
+        
+        let constraints = [resultsViewConstraints, scoreLabelConstraints, continueButtonConstraints, quitButtonConstraints]
+        for constraint in constraints {
+            NSLayoutConstraint.activate(constraint)
+        }
+        
+    }
+    
+    @objc func startNewRound() {
+        score = 0
+        inputField.isHidden = false
+        
+        //add logic for saving best score to NSUserDefaults here
+        
+        removeResultsView()
+        setRandomNumberLabel()
+        updateScoreLabel()
+        //startNewTimer()
+        
+        //respond to user input
+        inputField?.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        
+    }
+    
+    @objc func endGame() {
+        //add logic for saving best score to NSUserDefaults here
+        
+    }
+    
+    func removeResultsView() {
+        resultsView.removeFromSuperview()
     }
     
     func updateTimeLabel() {

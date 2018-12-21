@@ -15,14 +15,19 @@ class MainViewController: UIViewController {
     @IBOutlet weak var numbersLabel: UILabel!
     @IBOutlet weak var scoreLabel: UILabel!
     @IBOutlet weak var inputField: UITextField!
+    @IBOutlet weak var timeLabel: UILabel!
     
     //MARK:- Properties
     var hud: MBProgressHUD?
     var score: Int = 0
+    var timer: Timer?
+    var seconds: Int = 60
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //MARK:- Timer setup
         
         //MARK:- MBProgressHUD setup
         //show thumbs up for correct answer, thumbs down for incorrect
@@ -71,6 +76,11 @@ class MainViewController: UIViewController {
         //3. Trigger new numbers to start new turn
         setRandomNumberLabel()
         updateScoreLabel()
+        
+        //NOTE: creates timer only when first answer is given
+        if timer == nil {
+            timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(handleGameTimer), userInfo: nil, repeats: true)
+        }
     }
     
     //MARK:- MBProgressHUD helper method
@@ -97,7 +107,30 @@ class MainViewController: UIViewController {
     }
     
     //MARK:- Timer handling
-    @objc func handleGameTimer() {
+    @objc func handleGameTimer() -> Void {
+        if seconds > 0 && seconds <= 60 {
+            seconds -= 1
+            updateTimeLabel()
+        } else if seconds == 0 {
+            if timer != nil {
+                timer?.invalidate()
+                timer = nil
+            }
+        }
+    }
+    
+    func updateTimeLabel() {
+        if(timeLabel != nil)
+        {
+            let min:Int = (seconds / 60) % 60
+            let sec:Int = seconds % 60
+
+            let min_p:String = String(format: "%02d", min)
+            let sec_p:String = String(format: "%02d", sec)
+
+            timeLabel!.text = "\(min_p):\(sec_p)"
+        }
+       
     }
 
     func updateScoreLabel() {

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MBProgressHUD
 
 class MainViewController: UIViewController {
     
@@ -16,10 +17,19 @@ class MainViewController: UIViewController {
     @IBOutlet weak var inputField: UITextField!
     
     //MARK:- Properties
+    var hud: MBProgressHUD?
     var score: Int = 0
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //MARK:- MBProgressHUD setup
+        //show thumbs up for correct answer, thumbs down for incorrect
+        hud = MBProgressHUD(view: self.view)
+        if hud != nil {
+            self.view.addSubview(hud!)
+        }
         
         setRandomNumberLabel()
         updateScoreLabel()
@@ -49,16 +59,45 @@ class MainViewController: UIViewController {
         print("Comparing: \(numbersText) - \(inputText) == \(input - numbers)")
 
         if input - numbers == 1111 {
-            print("Correct!")  //testing purposes only
-            score += 1
+            print("Correct!") //testing purposes only
+            showHUDWithAnswer(isRight: true)
+            //score += 1
         } else {
-            print("Incorrect!")  //testing purposes only
-            score -= 1
+            print("Incorrect!") //testing purposes only
+            showHUDWithAnswer(isRight: false)
+            //score -= 1
         }
     
         //3. Trigger new numbers to start new turn
         setRandomNumberLabel()
         updateScoreLabel()
+    }
+    
+    //MARK:- MBProgressHUD helper method
+    func showHUDWithAnswer(isRight: Bool) {
+        var imageView: UIImageView?
+        
+        if isRight {
+            imageView = UIImageView(image: UIImage(named: "thumbs-up"))
+            score += 1
+        } else {
+            imageView = UIImageView(image: UIImage(named: "thumbs-down"))
+            score -= 1
+        }
+        
+        if let imageView = imageView {
+            hud?.mode = MBProgressHUDMode.customView
+            hud?.customView = imageView
+            hud?.show(animated: true)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.hud?.hide(animated: true)
+            }
+        }
+    }
+    
+    //MARK:- Timer handling
+    @objc func handleGameTimer() {
     }
 
     func updateScoreLabel() {
